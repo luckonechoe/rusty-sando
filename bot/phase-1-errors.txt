@@ -1,0 +1,67 @@
+# Phase 1 cargo check output
+# Branch: phase-1-deps
+# Captured: 2026-05-22
+# Toolchain: stable-x86_64-pc-windows-msvc, rustc 1.95.0, cargo 1.95.0
+# Command: cargo check --message-format=short  (run from bot/)
+
+# === DEPENDENCY RESOLUTION: SUCCESS ===
+# No 404s. No missing git sources. No "failed to load source for dependency".
+# All deps (alloy 1.8.x, revm 33.x, plus transitive crates) downloaded from
+# crates.io and started compiling.
+
+# === COMPILATION OUTCOME ON THIS HOST ===
+# Compilation halts in the build-script stage for foundational proc-macro
+# crates (proc-macro2, serde, serde_core, paste, quote, generic-array,
+# getrandom, ruint-macro) because this dev machine has no MSVC linker:
+#
+#   error: linker `link.exe` not found
+#   note: the msvc targets depend on the msvc linker but `link.exe` was not found
+#   note: please ensure that Visual Studio 2017 or later, or Build Tools for
+#         Visual Studio were installed with the Visual C++ option
+#
+# This is an environment limitation (no Visual C++ Build Tools installed),
+# not a Cargo.toml issue. On any host with `link.exe` (or a switched-to
+# x86_64-pc-windows-gnu / linux toolchain) the dep tree resolves, the
+# build scripts run, and cargo will then proceed to the source-level
+# type/import errors expected from src/ still referencing ethers /
+# ethers_flashbots / cfmms / foundry types — these are the genuine
+# Phase 2+ migration items.
+
+# === RAW TAIL OF `cargo check` OUTPUT ===
+   Compiling proc-macro2 v1.0.106
+   Compiling quote v1.0.45
+   Compiling serde_core v1.0.228
+   Compiling serde v1.0.228
+   Compiling paste v1.0.15
+   Compiling getrandom v0.3.4
+   Compiling generic-array v0.14.9
+   Compiling ruint-macro v1.2.1
+    Checking base16ct v0.2.0
+    Checking cpufeatures v0.2.17
+    Checking hybrid-array v0.4.12
+   Compiling find-msvc-tools v0.1.9
+    Checking rand_core v0.6.4
+   Compiling convert_case v0.10.0
+   Compiling shlex v1.3.0
+    Checking keccak v0.2.0
+    Checking rustc-hash v2.1.2
+error: linker `link.exe` not found
+note: the msvc targets depend on the msvc linker but `link.exe` was not found
+note: please ensure that Visual Studio 2017 or later, or Build Tools for Visual Studio were installed with the Visual C++ option
+note: VS Code is a different product, and is not sufficient
+error: could not compile `generic-array` (build script) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `quote` (build script) due to 1 previous error
+error: could not compile `paste` (build script) due to 1 previous error
+error: could not compile `proc-macro2` (build script) due to 1 previous error
+error: could not compile `serde` (build script) due to 1 previous error
+error: could not compile `getrandom` (build script) due to 1 previous error
+error: could not compile `serde_core` (build script) due to 1 previous error
+error: could not compile `ruint-macro` (lib) due to 1 previous error
+
+# === BASELINE COMPARISON (on master) ===
+# `bot/baseline-errors.txt` shows the previous failure mode:
+#   error: failed to get `anvil` as a dependency of package `strategy`
+#   Caused by: failed to fetch into ...mouseless-eth/foundry.git (HTTP 404)
+#   Caused by: failed to fetch into ...mouseless-eth/cfmms-rs.git (HTTP 404)
+# Phase 1 has eliminated those 404 dep-resolution failures entirely.

@@ -10,32 +10,37 @@ repository = "https://github.com/mouseless-eth/rusty-sando"
 keywords = ["Ethereum", "Mev", "Dex", "Sandwich"]
 authors = ["0xmouseless <https://github.com/mouseless-eth>"]
 
-[dependencies]
-dotenv = "0.15.0"
-hashbrown = "0.14.0"
-tokio = { version = "1.29.0", features = ["full"] }
-log = "0.4.17"
-url = "2.3.1"
-dashmap = "5.4.0"
-hex = "0.4.3"
-serde = "1.0.145"
-anyhow = "1.0.71"
-reqwest = "0.11.12"
-thiserror = "1.0.37"
-futures = "0.3.5"
+# Phase 1 dep skeleton: ethers, ethers-flashbots, cfmms removed.
+# Alloy v1 / revm v33 are the new EVM stack. Flashbots integration is
+# planned to be a thin local FlashbotsClient (alloy PrivateKeySigner +
+# reqwest) per skill-updates/flashbots-mev.md — no separate crate needed
+# yet. References to ethers / cfmms / ethers_flashbots in src/ become
+# real type errors in cargo check (expected, fixed in Phase 2+).
 
-# EVM based crates
-cfmms = "0.6.2"
-ethers-flashbots = { git = "https://github.com/onbjerg/ethers-flashbots" }
-ethers = {version = "2.0.7", features = ["abigen", "ws"]}
-revm = "3.3.0"
+[dependencies]
+dotenv    = { workspace = true }
+hashbrown = { workspace = true }
+tokio     = { workspace = true }
+log       = { workspace = true }
+url       = { workspace = true }
+dashmap   = { workspace = true }
+hex       = { workspace = true }
+serde     = { workspace = true }
+anyhow    = { workspace = true }
+reqwest   = { workspace = true }
+thiserror = { workspace = true }
+futures   = { workspace = true }
+
+# EVM stack
+alloy = { workspace = true }
+revm  = { workspace = true }
 
 # logging
-indoc = "2"
-fern = {version = "0.6.2", features = ["colored"]}
-chrono = "0.4.23"
-colored = "2.0.0"
+indoc   = { workspace = true }
+fern    = { workspace = true }
+chrono  = { workspace = true }
+colored = { workspace = true }
 
 # artemis related
-artemis-core = { path = "../crates/artemis-core"}
-strategy = { path = "../crates/strategy" }
+artemis-core = { path = "../crates/artemis-core" }
+strategy     = { path = "../crates/strategy" }
