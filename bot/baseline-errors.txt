@@ -1,0 +1,41 @@
+﻿cargo : warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on 
+edition 2021 which implies `resolver = "2"`
+At line:1 char:190
++ ... in"; cd C:\Users\stale\Code\rusty-sando\bot; cargo check 2>&1 | Out-S ...
++                                                  ~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: virtua...resolver = "2"`:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+    Updating crates.io index
+    Updating git repository `https://github.com/onbjerg/ethers-flashbots`
+    Updating git repository `https://github.com/mouseless-eth/foundry.git`
+warning: spurious network error (3 tries remaining): request failed with status code: 404; class=Http (34)
+warning: spurious network error (2 tries remaining): request failed with status code: 404; class=Http (34)
+warning: spurious network error (1 try remaining): request failed with status code: 404; class=Http (34)
+error: failed to get `anvil` as a dependency of package `strategy v0.1.0 
+(C:\Users\stale\Code\rusty-sando\bot\crates\strategy)`
+
+Caused by:
+  failed to load source for dependency `anvil`
+
+Caused by:
+  unable to update https://github.com/mouseless-eth/foundry.git?branch=ethers-version-change
+
+Caused by:
+  failed to fetch into: C:\Users\stale\.cargo\git\db\foundry-1a39ef54cac47616
+
+Caused by:
+  failed to authenticate when downloading repository
+
+  * attempted to find username/password via `credential.helper`, but maybe the found credentials were incorrect
+
+  if the git CLI succeeds then `net.git-fetch-with-cli` may help here
+  https://doc.rust-lang.org/cargo/reference/config.html#netgit-fetch-with-cli
+
+Caused by:
+  request failed with status code: 404; class=Http (34)
+

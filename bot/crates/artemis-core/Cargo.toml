@@ -3,21 +3,23 @@ name = "artemis-core"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+# Phase 1 dep skeleton: ethers + ethers-flashbots removed.
+# Alloy v1 / revm v33 surface area pulled from the workspace dep table.
+# Source code under src/ still references ethers types — those become
+# real type/import errors in cargo check (expected, fixed in Phase 2+).
 
 [dependencies]
-
 ## eth
-ethers = { version = "2", features = ["ws", "rustls"]}
-ethers-flashbots = { git = "https://github.com/onbjerg/ethers-flashbots", features = ["rustls"] }
+alloy = { workspace = true }
 
 ## async
-async-trait = "0.1.64"
-reqwest = { version = "0.11.14", default-features = false, features = ["rustls-tls"] }
-tokio = { version = "1.18", features = ["full"] }
-tokio-stream = { version = "0.1", features = ['sync'] }
+async-trait  = { workspace = true }
+reqwest      = { workspace = true }
+tokio        = { workspace = true }
+tokio-stream = { workspace = true }
+futures      = { workspace = true }
 
 ## misc
-anyhow = "1.0.70"
-thiserror = "1.0.40"
-tracing = "0.1.37"
+anyhow    = { workspace = true }
+thiserror = { workspace = true }
+tracing   = { workspace = true }

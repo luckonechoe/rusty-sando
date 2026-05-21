@@ -3,35 +3,38 @@ name = "strategy"
 version = "0.1.0"
 edition = "2021"
 
+# Phase 1 dep skeleton.
+# Removed: cfmms (mouseless-eth/cfmms-rs, dead 404), foundry-evm + anvil
+# (mouseless-eth/foundry, dead 404), ethers, ethers-flashbots, eth-encode-packed.
+# Added: alloy v1, revm v33.
+# Source under src/ still references those old crates → type/import errors
+# in cargo check (expected — fixed in Phase 2+).
+
 [dependencies]
 # Misc
-hashbrown = "0.14.0"
-tokio = { version = "1.29.0", features = ["full"] }
-dashmap = "5.4.0"
-thiserror = "1.0.37"
-futures = "0.3.5"
-async-trait = "0.1.64"
-anyhow = "1.0.70"
-serde = "1.0.145"
+hashbrown   = { workspace = true }
+tokio       = { workspace = true }
+dashmap     = { workspace = true }
+thiserror   = { workspace = true }
+futures     = { workspace = true }
+async-trait = { workspace = true }
+anyhow      = { workspace = true }
+serde       = { workspace = true }
 
-# EVM based crates
-cfmms = { git = "https://github.com/mouseless-eth/cfmms-rs.git", branch = "fix-serialize-dex-fee"}
-ethers-flashbots = { git = "https://github.com/onbjerg/ethers-flashbots"}
-ethers = {version = "2.0.7", features = ["abigen", "ws"]}
-foundry-evm = { git = "https://github.com/mouseless-eth/foundry.git", branch = "ethers-version-change" }
-anvil = { git = "https://github.com/mouseless-eth/foundry.git", branch = "ethers-version-change" }
-eth-encode-packed = "0.1.0"
+# EVM stack (alloy v1 + revm v33 replaces ethers / foundry-evm / cfmms / anvil)
+alloy = { workspace = true }
+revm  = { workspace = true }
 
 # Logging
-colored = "2.0.0"
-log = "0.4.17"
-indicatif = "0.17.5"
+colored   = { workspace = true }
+log       = { workspace = true }
+indicatif = { workspace = true }
 
 # Artemis
 artemis-core = { path = "../artemis-core" }
 
 [dev-dependencies]
-fern = {version = "0.6.2", features = ["colored"]}
+fern = { workspace = true }
 
 [features]
 debug = []

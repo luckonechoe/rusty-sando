@@ -1,6 +1,45 @@
 [workspace]
+resolver = "2"
 members = [
     "crates/artemis-core",
     "crates/strategy",
     "sando-bin"
 ]
+
+# Phase 1 dep skeleton — alloy v1 + revm v33.
+# All workspace members consume these via path/version pinning in their own
+# Cargo.toml. Versions verified 2026-05-22 against:
+#   https://crates.io/crates/alloy        (latest 1.x = 1.8.3, latest = 2.0.5)
+#   https://crates.io/crates/revm         (33.1.0 still resolvable; latest 40.0.1)
+#   https://github.com/alloy-rs/alloy/releases  (v1.8.3 final 1.x tag)
+[workspace.dependencies]
+alloy = { version = "1.8", features = ["full"] }
+alloy-primitives = "1.8"
+alloy-sol-types  = "1.0"
+revm = { version = "33", features = ["std"] }
+
+# async / runtime
+tokio        = { version = "1.42", features = ["full"] }
+tokio-stream = { version = "0.1", features = ["sync"] }
+async-trait  = "0.1"
+futures      = "0.3"
+reqwest      = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+
+# misc
+anyhow     = "1.0"
+thiserror  = "1.0"
+tracing    = "0.1"
+serde      = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+hex        = "0.4"
+url        = "2.5"
+dotenv     = "0.15"
+hashbrown  = "0.14"
+dashmap    = "5.5"
+log        = "0.4"
+indicatif  = "0.17"
+colored    = "2.1"
+fern       = { version = "0.6", features = ["colored"] }
+chrono     = "0.4"
+indoc      = "2"
+eyre       = "0.6"
