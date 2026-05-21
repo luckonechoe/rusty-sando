@@ -1,23 +1,13 @@
-use anyhow::{anyhow, Result};
-use colored::Colorize;
-use ethers::{
-    providers::Middleware,
-    signers::{LocalWallet, Signer},
-    types::{Address, BlockNumber, Filter, U256, U64},
-};
-use log::info;
+use alloy::primitives::{Address, U256};
+use alloy::providers::Provider;
+use alloy::signers::local::PrivateKeySigner;
+use anyhow::Result;
 use std::sync::Arc;
-
-use crate::{
-    abi::Erc20,
-    constants::{ERC20_TRANSFER_EVENT_SIG, WETH_ADDRESS},
-    startup_info_log,
-};
 
 pub struct SandoStateManager {
     sando_contract: Address,
-    sando_inception_block: U64,
-    searcher_signer: LocalWallet,
+    sando_inception_block: u64,
+    searcher_signer: PrivateKeySigner,
     weth_inventory: U256,
     token_dust: Vec<Address>,
 }
@@ -25,65 +15,24 @@ pub struct SandoStateManager {
 impl SandoStateManager {
     pub fn new(
         sando_contract: Address,
-        searcher_signer: LocalWallet,
-        sando_inception_block: U64,
+        searcher_signer: PrivateKeySigner,
+        sando_inception_block: u64,
     ) -> Self {
         Self {
             sando_contract,
             sando_inception_block,
             searcher_signer,
-            weth_inventory: Default::default(),
-            token_dust: Default::default(),
+            weth_inventory: U256::ZERO,
+            token_dust: Vec::new(),
         }
     }
 
-    pub async fn setup<M: Middleware + 'static>(&mut self, provider: Arc<M>) -> Result<()> {
-        // find weth inventory
-        let weth = Erc20::new(*WETH_ADDRESS, provider.clone());
-        let weth_balance = weth.balance_of(self.sando_contract).call().await?;
-        startup_info_log!("weth inventory   : {}", weth_balance);
-        self.weth_inventory = weth_balance;
-
-        // find weth dust
-        let step = 10000;
-
-        let latest_block = provider
-            .get_block(BlockNumber::Latest)
-            .await
-            .map_err(|_| anyhow!("Failed to get latest block"))?
-            .ok_or(anyhow!("Failed to get latest block"))?
-            .number
-            .ok_or(anyhow!("Field block number does not exist on latest block"))?
-            .as_u64();
-
-        let mut token_dust = vec![];
-
-        let start_block = self.sando_inception_block.as_u64();
-
-        // for each block within the range, get all transfer events asynchronously
-        for from_block in (start_block..=latest_block).step_by(step) {
-            let to_block = from_block + step as u64;
-
-            // check for all incoming and outgoing txs within step range
-            let transfer_logs = provider
-                .get_logs(
-                    &Filter::new()
-                        .topic0(*ERC20_TRANSFER_EVENT_SIG)
-                        .topic1(self.sando_contract)
-                        .from_block(BlockNumber::Number(U64([from_block])))
-                        .to_block(BlockNumber::Number(U64([to_block]))),
-                )
-                .await?;
-
-            for log in transfer_logs {
-                token_dust.push(log.address);
-            }
-        }
-
-        startup_info_log!("token dust found : {}", token_dust.len());
-        self.token_dust = token_dust;
-
-        Ok(())
+    /// Sync WETH inventory and token dust via provider.
+    ///
+    /// Phase 3 placeholder — alloy provider + ERC20 calls deferred.
+    pub async fn setup<P: Provider + 'static>(&mut self, _provider: Arc<P>) -> Result<()> {
+        // TODO(phase-3): replace `todo!` body with real alloy v1 provider + ERC20 calls.
+        todo!("Phase 3: alloy provider + ERC20 calls")
     }
 
     pub fn get_sando_address(&self) -> Address {
@@ -94,7 +43,7 @@ impl SandoStateManager {
         self.searcher_signer.address()
     }
 
-    pub fn get_searcher_signer(&self) -> &LocalWallet {
+    pub fn get_searcher_signer(&self) -> &PrivateKeySigner {
         &self.searcher_signer
     }
 

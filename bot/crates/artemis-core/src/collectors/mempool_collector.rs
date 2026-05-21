@@ -1,38 +1,47 @@
-use async_trait::async_trait;
-
-use ethers::{prelude::Middleware, providers::PubsubClient, types::Transaction};
-use std::sync::Arc;
-
 use crate::types::{Collector, CollectorStream};
+use alloy::consensus::TxType;
+use alloy::providers::Provider;
+use alloy::rpc::types::Transaction;
 use anyhow::Result;
+use async_trait::async_trait;
+use std::sync::Arc;
+use tokio_stream::StreamExt;
 
-/// A collector that listens for new transactions in the mempool, and generates a stream of
-/// [events](Transaction) which contain the transaction.
-pub struct MempoolCollector<M> {
-    provider: Arc<M>,
+/// A collector that listens for new pending transactions in the mempool and
+/// generates a stream of full [Transaction] objects.
+///
+/// EIP-4844 blob transactions (type 3) are filtered out at the source: the
+/// sandwich strategy can never extract MEV from blob carriers because their
+/// payload is a KZG commitment, not calldata, and including one in a bundle
+/// would just inflate gas without altering pool state.
+pub struct MempoolCollector<P> {
+    provider: Arc<P>,
 }
 
-impl<M> MempoolCollector<M> {
-    pub fn new(provider: Arc<M>) -> Self {
+impl<P> MempoolCollector<P> {
+    pub fn new(provider: Arc<P>) -> Self {
         Self { provider }
     }
 }
 
-/// Implementation of the [Collector](Collector) trait for the [MempoolCollector](MempoolCollector).
-/// This implementation uses the [PubsubClient](PubsubClient) to subscribe to new transactions.
+/// Implementation of the [Collector](Collector) trait for [MempoolCollector].
+/// Uses `alloy_pubsub::Subscription` over `eth_subscribe("newPendingTransactions", true)`
+/// (full bodies) so we can inspect the transaction type before forwarding.
 #[async_trait]
-impl<M> Collector<Transaction> for MempoolCollector<M>
+impl<P> Collector<Transaction> for MempoolCollector<P>
 where
-    M: Middleware,
-    M::Provider: PubsubClient,
-    M::Error: 'static,
+    P: Provider + 'static,
 {
     async fn get_event_stream(&self) -> Result<CollectorStream<'_, Transaction>> {
-        let stream = self
+        let sub = self
             .provider
-            .subscribe(["newPendingTransactionsWithBody"])
+            .subscribe_full_pending_transactions()
             .await
-            .map_err(|_| anyhow::anyhow!("Failed to create mempool stream"))?;
+            .map_err(|e| anyhow::anyhow!("subscribe_full_pending_transactions failed: {e}"))?;
+        // Drop EIP-4844 blob carriers (type 3); they can't be sandwiched.
+        let stream = sub
+            .into_stream()
+            .filter(|tx| tx.inner.tx_type() != TxType::Eip4844);
         Ok(Box::pin(stream))
     }
 }

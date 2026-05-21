@@ -1,96 +1,61 @@
-use async_trait::async_trait;
-use ethers::{
-    core::types::{transaction::eip2718::TypedTransaction, BlockId},
-    providers::{spoof, CallBuilder, Middleware, MiddlewareError, RawCall},
-    types::{Address, Bytes},
-};
-use thiserror::Error;
+//! Phase-2 stub of the state-override middleware.
+//!
+//! The legacy ethers `Middleware` tower pattern does not exist in alloy v1:
+//! state overrides are a per-call argument on `eth_call` (and `debug_traceCall`)
+//! rather than a wrapping middleware. Phase 3 (simulator) will use
+//! `alloy::rpc::types::state::StateOverride` directly inside revm fork
+//! drivers, so this module exists only to keep the historical public surface
+//! compiling.
+//!
+//! Downstream code that used to invoke `middleware.call(tx, block).await` now
+//! passes the `StateOverride` directly via `Provider::call(&tx).overrides(&state)`.
 
-/// This custom middleware performs an ephemeral state override prior to executoring calls.
-#[derive(Debug)]
-pub struct StateOverrideMiddleware<M> {
-    /// The inner middleware
-    inner: M,
-    /// The state override set we use for calls
-    state: spoof::State,
+use alloy::primitives::{Address, Bytes, B256, U256};
+use alloy::rpc::types::state::StateOverride;
+
+/// Lightweight container that holds a provider handle and a state-override
+/// map. Replaces the ethers `Middleware`-based version one-for-one in the
+/// `set_code` / `add_code_to_address` API.
+#[derive(Debug, Clone)]
+pub struct StateOverrideMiddleware<P> {
+    inner: P,
+    state: StateOverride,
 }
 
-impl<M> StateOverrideMiddleware<M>
-where
-    M: Middleware,
-{
-    /// Creates an instance of StateOverrideMiddleware
-    /// `ìnner` the inner Middleware
-    pub fn new(inner: M) -> StateOverrideMiddleware<M> {
+impl<P> StateOverrideMiddleware<P> {
+    /// Create a new state-override container around the given provider.
+    pub fn new(inner: P) -> Self {
         Self {
             inner,
-            state: spoof::state(),
+            state: StateOverride::default(),
         }
     }
-}
 
-#[async_trait]
-impl<M> Middleware for StateOverrideMiddleware<M>
-where
-    M: Middleware,
-{
-    type Error = StateOverrideMiddlewareError<M>;
-    type Provider = M::Provider;
-    type Inner = M;
-
-    fn inner(&self) -> &M {
+    /// Borrow the inner provider.
+    pub fn inner(&self) -> &P {
         &self.inner
     }
 
-    /// Performs a call with the state override.
-    async fn call(
-        &self,
-        tx: &TypedTransaction,
-        block: Option<BlockId>,
-    ) -> Result<Bytes, Self::Error> {
-        let call_builder = CallBuilder::new(self.inner.provider(), tx);
-        let call_builder = match block {
-            Some(block) => call_builder.block(block),
-            None => call_builder,
-        };
-        let call_builder = call_builder.state(&self.state);
-        call_builder
-            .await
-            .map_err(StateOverrideMiddlewareError::from_provider_err)
+    /// Borrow the underlying state-override map. Pass this to
+    /// `Provider::call(...).overrides(&map)` at the call site.
+    pub fn state(&self) -> &StateOverride {
+        &self.state
     }
-}
 
-impl<M> StateOverrideMiddleware<M> {
-    /// Adds a code override at a given address.
+    /// Override the bytecode at `address`.
     pub fn add_code_to_address(&mut self, address: Address, code: Bytes) {
-        self.state.account(address).code(code);
+        self.state.entry(address).or_default().code = Some(code);
     }
 
-    /// Adds a code override at a random address, returning the address.
-    pub fn add_code(&mut self, code: Bytes) -> Address {
-        let address = Address::random();
-        self.state.account(address).code(code);
-        address
-    }
-}
-
-#[derive(Error, Debug)]
-pub enum StateOverrideMiddlewareError<M: Middleware> {
-    /// Thrown when the internal middleware errors
-    #[error("{0}")]
-    MiddlewareError(M::Error),
-}
-
-impl<M: Middleware> MiddlewareError for StateOverrideMiddlewareError<M> {
-    type Inner = M::Error;
-
-    fn from_err(src: M::Error) -> Self {
-        StateOverrideMiddlewareError::MiddlewareError(src)
+    /// Set a single storage slot at `address`.
+    pub fn set_storage(&mut self, address: Address, slot: B256, value: B256) {
+        let acct = self.state.entry(address).or_default();
+        let storage = acct.state_diff.get_or_insert_with(Default::default);
+        storage.insert(slot, value);
     }
 
-    fn as_inner(&self) -> Option<&Self::Inner> {
-        match self {
-            StateOverrideMiddlewareError::MiddlewareError(e) => Some(e),
-        }
+    /// Override the balance of an address.
+    pub fn set_balance(&mut self, address: Address, balance: U256) {
+        self.state.entry(address).or_default().balance = Some(balance);
     }
 }

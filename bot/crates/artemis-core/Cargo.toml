@@ -23,3 +23,9 @@ futures      = { workspace = true }
 anyhow    = { workspace = true }
 thiserror = { workspace = true }
 tracing   = { workspace = true }
+
+[features]
+default = []
+# Enables integration tests that spawn an Anvil node. Requires the `anvil`
+# binary on PATH. Off by default so plain `cargo check` / `cargo build` works.
+live = []
