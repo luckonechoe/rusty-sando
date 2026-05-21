@@ -12,6 +12,7 @@ pub async fn sign_eip1559(
     _tx: TransactionRequest,
     _signer_wallet: &PrivateKeySigner,
 ) -> Result<Bytes> {
+    // TODO(phase-3): replace `todo!` body with real alloy v1 EIP-1559 signing logic.
     todo!("Phase 3: simulator/bundle signing")
 }
 
@@ -21,6 +22,7 @@ pub async fn sign_eip1559(
 pub fn access_list_to_alloy(
     _access_list: Vec<(Address, Vec<U256>)>,
 ) -> AccessList {
+    // TODO(phase-3): replace `todo!` body with real alloy v1 / revm interop conversion.
     todo!("Phase 3: simulator")
 }
 
@@ -30,6 +32,7 @@ pub fn access_list_to_alloy(
 pub fn access_list_to_revm(
     _access_list: AccessList,
 ) -> Vec<(Address, Vec<U256>)> {
+    // TODO(phase-3): replace `todo!` body with real alloy v1 / revm interop conversion.
     todo!("Phase 3: simulator")
 }
 

@@ -32,11 +32,29 @@ pub struct StratConfig {
 // Pool placeholder (Phase 4: CFMM pool variants)
 // ---------------------------------------------------------------------------
 
-/// Placeholder pool type until CFMM math is ported in Phase 4.
+/// Pool type. Currently exposes Uniswap V2/V3 address-only variants plus a
+/// `Placeholder` retained for backward compatibility with code paths that have
+/// not yet been ported. Phase 4 will replace the address-only variants with
+/// real CFMM math structs.
 #[derive(Debug, Clone)]
 pub enum Pool {
-    // TODO Phase 4: UniswapV2(UniswapV2Pool), UniswapV3(UniswapV3Pool)
+    /// Uniswap V2 pair address (Phase 4: full `UniswapV2Pool` struct).
+    UniswapV2(Address),
+    /// Uniswap V3 pool address (Phase 4: full `UniswapV3Pool` struct).
+    UniswapV3(Address),
+    /// Legacy placeholder kept so existing callers compile until they are
+    /// migrated to the typed variants in Phase 4.
     Placeholder,
+}
+
+impl Pool {
+    /// Returns the on-chain address of the pool, if known.
+    pub fn address(&self) -> Option<Address> {
+        match self {
+            Pool::UniswapV2(addr) | Pool::UniswapV3(addr) => Some(*addr),
+            Pool::Placeholder => None,
+        }
+    }
 }
 
 /// Information on potential sandwichable opportunity
@@ -242,6 +260,8 @@ impl SandoRecipe {
         _searcher: &PrivateKeySigner,
         _has_dust: bool,
     ) -> Result<FlashbotsBundle> {
+        // TODO(phase-3): replace `todo!` body with real alloy v1 bundle construction
+        // (Phase 5 Flashbots submission).
         todo!("Phase 5: bundle submission")
     }
 }

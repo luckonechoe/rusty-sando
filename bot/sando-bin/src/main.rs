@@ -45,6 +45,11 @@ async fn main() -> Result<()> {
     let config = Config::read_from_dotenv().await?;
 
     // Alloy v1 pub-sub provider over WSS.
+    //
+    // NOTE(alloy v1): `ProviderBuilder::new().connect(<wss-url>)` auto-detects
+    // the WebSocket transport from the URL scheme (ws:// or wss://). The
+    // legacy 0.x `WsConnect`/`on_ws` builder helpers were removed in alloy
+    // v1; using `connect(...)` keeps us on the v1-stable API surface.
     let provider = Arc::new(
         ProviderBuilder::new()
             .connect(config.wss_rpc.as_str())

@@ -21,6 +21,7 @@ impl BlockManager {
     ///
     /// Phase 3 placeholder — provider integration is deferred.
     pub async fn setup<P: Provider + 'static>(&mut self, _provider: Arc<P>) -> Result<()> {
+        // TODO(phase-3): replace `todo!` body with real alloy v1 provider integration.
         todo!("Phase 3: provider integration")
     }
 

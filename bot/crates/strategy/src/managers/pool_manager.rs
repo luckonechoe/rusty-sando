@@ -34,6 +34,7 @@ pub(crate) struct PoolManager<P> {
 impl<P: Provider + 'static> PoolManager<P> {
     /// Sync pool state. Phase 4 placeholder.
     pub async fn setup(&mut self) -> Result<()> {
+        // TODO(phase-3): replace `todo!` body with real alloy v1 CFMM sync logic (Phase 4).
         todo!("Phase 4: CFMM/state-diff")
     }
 
@@ -43,6 +44,7 @@ impl<P: Provider + 'static> PoolManager<P> {
         _victim_tx: &Transaction,
         _provider: Arc<P>,
     ) -> Result<Vec<Pool>> {
+        // TODO(phase-3): replace `todo!` body with real alloy v1 state-diff analysis (Phase 4).
         todo!("Phase 4: CFMM/state-diff")
     }
 
