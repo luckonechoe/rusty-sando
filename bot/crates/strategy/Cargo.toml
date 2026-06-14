@@ -40,7 +40,7 @@ fern = { workspace = true }
 
 [features]
 debug = []
-# Phase 3+4+5: revm simulator, CFMM math, Huff sando interface,
-# pool/state managers, and Flashbots bundle building.
-# OFF by default in Phase 2 so the workspace compiles against alloy v1.
+# Sim-only surface (lil_router_interface). Gated so default-features builds
+# don't compile the simulator-facing encoder. The huff_sando_interface
+# encoders themselves are always compiled.
 simulate = []
