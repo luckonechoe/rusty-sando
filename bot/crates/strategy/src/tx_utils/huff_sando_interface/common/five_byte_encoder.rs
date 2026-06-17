@@ -1,5 +1,8 @@
-use eth_encode_packed::{SolidityDataType, TakeLastXBytes};
-use ethers::types::U256;
+use alloy::primitives::U256;
+
+use super::packed_encoder::{
+    abi::encode_packed, SolidityDataType, TakeLastXBytes,
+};
 
 /// A struct that contains the metadata for the five byte encoding
 pub struct FiveByteMetaData {
@@ -19,11 +22,11 @@ impl FiveByteMetaData {
 
         while byte_shift < 32 {
             // lossy encoding as we lose bits due to division
-            let encoded_amount = amount / 2u128.pow(8 * byte_shift as u32);
+            let encoded_amount = amount / U256::from(2u128).pow(U256::from(8 * byte_shift as u32));
 
             // if we can fit the value in 4 bytes, we can encode it
-            if encoded_amount <= U256::from(2).pow((4 * 8).into()) - 1 {
-                four_bytes = encoded_amount.as_u32();
+            if encoded_amount <= U256::from(2).pow(U256::from(4 * 8)) - U256::from(1) {
+                four_bytes = encoded_amount.to::<u32>();
                 break;
             }
 
@@ -55,9 +58,9 @@ impl FiveByteMetaData {
         // for encoding the value to be shifted
         let mem_offset = 4 + 32 + (self.param_index * 32) - 4 - self.byte_shift;
 
-        let (encoded, _) = eth_encode_packed::abi::encode_packed(&vec![
-            SolidityDataType::NumberWithShift(mem_offset.into(), TakeLastXBytes(8)),
-            SolidityDataType::NumberWithShift(self.four_bytes.into(), TakeLastXBytes(32)),
+        let (encoded, _) = encode_packed(&[
+            SolidityDataType::NumberWithShift(U256::from(mem_offset), TakeLastXBytes(8)),
+            SolidityDataType::NumberWithShift(U256::from(self.four_bytes), TakeLastXBytes(32)),
         ]);
 
         encoded
